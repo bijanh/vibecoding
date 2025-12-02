@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Pong Game</title>
+  <style>
+    body { margin: 0; background: green; overflow: hidden; }
+    canvas { display: block; margin: auto; background: #0b6623; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Ball setup (steady speed)
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height / 2;
+    let ballSpeedX = 5;
+    let ballSpeedY = 4;
+
+    // Paddle setup (20% bigger)
+    const PADDLE_HEIGHT = 120;
+    const PADDLE_WIDTH = 10;
+    let paddle1Y = (canvas.height - PADDLE_HEIGHT) / 2;
+    let paddle2Y = (canvas.height - PADDLE_HEIGHT) / 2;
+
+    // Scoring system (tennis style)
+    const tennisScores = [0, 15, 30, 40, 'Game'];
+    let player1Score = 0;
+    let player2Score = 0;
+
+    // Player input
+    let upPressed = false;
+    let downPressed = false;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') upPressed = true;
+      if (e.key === 'ArrowDown') downPressed = true;
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp') upPressed = false;
+      if (e.key === 'ArrowDown') downPressed = false;
+    });
+
+    function moveEverything() {
+      // Move 10% faster
+      if (upPressed && paddle1Y > 0) paddle1Y -= 7.92;
+      if (downPressed && paddle1Y < canvas.height - PADDLE_HEIGHT) paddle1Y += 7.92;
+
+      const paddle2Center = paddle2Y + PADDLE_HEIGHT / 2;
+      if (paddle2Center < ballY - 35) paddle2Y += 4.4;
+      else if (paddle2Center > ballY + 35) paddle2Y -= 4.4;
+
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+
+      if (ballY < 0 || ballY > canvas.height) ballSpeedY = -ballSpeedY;
+
+      if (ballX < PADDLE_WIDTH) {
+        if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) {
+          ballSpeedX = -ballSpeedX;
+        } else {
+          player2Score++;
+          updateScores();
+          resetBall();
+        }
+      }
+
+      if (ballX > canvas.width - PADDLE_WIDTH) {
+        if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+          ballSpeedX = -ballSpeedX;
+        } else {
+          player1Score++;
+          updateScores();
+          resetBall();
+        }
+      }
+    }
+
+    function updateScores() {
+      if (player1Score > 4) player1Score = 0;
+      if (player2Score > 4) player2Score = 0;
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
+      ballSpeedY = 4;
+    }
+
+    function drawCourt() {
+      ctx.fillStyle = '#0b6623';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+      for (let y = 20; y < canvas.height - 20; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, y);
+        ctx.lineTo(canvas.width / 2, y + 10);
+        ctx.stroke();
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = 'white';
+      ctx.font = '24px Arial';
+      ctx.fillText(`Player 1: ${tennisScores[player1Score]}`, 100, 50);
+      ctx.fillText(`Player 2: ${tennisScores[player2Score]}`, canvas.width - 250, 50);
+    }
+
+    function drawEverything() {
+      drawCourt();
+      drawScore();
+
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT);
+      ctx.fillRect(canvas.width - PADDLE_WIDTH, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function gameLoop() {
+      moveEverything();
+      drawEverything();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
