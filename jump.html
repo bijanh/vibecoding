@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goat Jump Canvas</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(to top, #3b7e1c 20%, #5c94fc 80%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      border: 3px solid #222;
+      background: linear-gradient(to top, #7cd1ff, #b3e9ff);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="800" height="250"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const groundHeight = 40;
+    const gravity = 0.6; // restore stronger gravity
+    const jumpStrength = 12; // restore higher jump strength for better double jump
+    const baseSpeed = 4;
+
+    let player = { x: 80, y: 0, size: 40, vy: 0, jumps: 0, maxJumps: 2 };
+    player.y = canvas.height - groundHeight - player.size;
+    let obstacles = [];
+    let score = 0;
+    let speed = baseSpeed;
+    let running = false;
+    let gameOver = false;
+
+    let lastObstacleTime = 0;
+    let obstacleCooldown = randomInterval();
+
+    function randomInterval() {
+      return 1500 + Math.random() * 2000;
+    }
+
+    function spawnObstacle() {
+      const height = 25 + Math.random() * 30;
+      const width = 35 + Math.random() * 40;
+      const baseY = canvas.height - groundHeight - height;
+      obstacles.push({
+        x: canvas.width + Math.random() * 100,
+        y: baseY,
+        w: width,
+        h: height,
+        color: `hsl(${Math.random() * 360}, 60%, 45%)`
+      });
+    }
+
+    function reset() {
+      player.y = canvas.height - groundHeight - player.size;
+      player.vy = 0;
+      player.jumps = 0;
+      obstacles = [];
+      score = 0;
+      speed = baseSpeed;
+      gameOver = false;
+      running = true;
+      lastObstacleTime = 0;
+      obstacleCooldown = randomInterval();
+      spawnObstacle();
+      loop(0);
+    }
+
+    function jump() {
+      if (player.jumps < player.maxJumps) {
+        player.vy = jumpStrength;
+        player.jumps++;
+      }
+    }
+
+    function update(delta) {
+      player.vy -= gravity;
+      player.y -= player.vy;
+      if (player.y > canvas.height - groundHeight - player.size) {
+        player.y = canvas.height - groundHeight - player.size;
+        player.vy = 0;
+        player.jumps = 0;
+      }
+
+      lastObstacleTime += delta;
+      if (lastObstacleTime >= obstacleCooldown) {
+        spawnObstacle();
+        lastObstacleTime = 0;
+        obstacleCooldown = randomInterval();
+        if (Math.random() < 0.25) {
+          const last = obstacles[obstacles.length - 1];
+          obstacles.push({
+            x: last.x + last.w + 10,
+            y: canvas.height - groundHeight - last.h,
+            w: last.w,
+            h: last.h,
+            color: last.color
+          });
+        }
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.x -= speed;
+        if (o.x + o.w < 0) {
+          obstacles.splice(i, 1);
+          score++;
+          if (speed < 6) speed += 0.05;
+        }
+
+        if (o.x < player.x + player.size && o.x + o.w > player.x && player.y + player.size > o.y) {
+          gameOver = true;
+          running = false;
+        }
+      }
+    }
+
+    function drawGround() {
+      ctx.fillStyle = "#3b7e1c";
+      ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+      for (let i = 0; i < canvas.width; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(i, canvas.height - groundHeight);
+        ctx.lineTo(i + 10, canvas.height - groundHeight - 5 - Math.random() * 3);
+        ctx.lineTo(i + 20, canvas.height - groundHeight);
+        ctx.fillStyle = "#2e6f1f";
+        ctx.fill();
+      }
+    }
+
+    function drawSun() {
+      const sunX = canvas.width - 60;
+      const sunY = 60;
+      const gradient = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 40);
+      gradient.addColorStop(0, "#fff799");
+      gradient.addColorStop(1, "#fdd835");
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 30, 0, Math.PI * 2);
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+
+    function drawGoat(x, y, size) {
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.beginPath();
+      ctx.ellipse(x + size / 2, y + size + 10, size / 2, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const bodyGradient = ctx.createLinearGradient(x, y, x, y + size);
+      bodyGradient.addColorStop(0, "#ddd");
+      bodyGradient.addColorStop(1, "#888");
+      ctx.fillStyle = bodyGradient;
+      ctx.fillRect(x, y, size, size);
+
+      ctx.fillStyle = "#444";
+      ctx.fillRect(x + 5, y + size, 5, 10);
+      ctx.fillRect(x + size - 10, y + size, 5, 10);
+
+      ctx.fillStyle = "#bbb";
+      ctx.beginPath();
+      ctx.arc(x + size - 10, y + 15, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#300";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + size - 15, y + 5);
+      ctx.lineTo(x + size - 20, y - 10);
+      ctx.lineTo(x + size - 10, y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x + size - 5, y + 5);
+      ctx.lineTo(x + size, y - 10);
+      ctx.lineTo(x + size - 10, y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y - 12, 12, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,255,150,0.9)";
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "yellow";
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.beginPath();
+      ctx.ellipse(x - 10, y + 10, 12, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x + size + 10, y + 10, 12, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawOompa(o) {
+      const gradient = ctx.createLinearGradient(o.x, o.y, o.x, o.y + o.h);
+      gradient.addColorStop(0, o.color);
+      gradient.addColorStop(1, "#111");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+
+      ctx.fillStyle = "#ffcc99";
+      ctx.fillRect(o.x + 5, o.y + 5, o.w - 10, o.h / 2 - 5);
+
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(o.x + 10, o.y + 12, 2, 0, Math.PI * 2);
+      ctx.arc(o.x + o.w - 10, o.y + 12, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.strokeStyle = "#000";
+      ctx.moveTo(o.x + 8, o.y + 20);
+      ctx.lineTo(o.x + o.w - 8, o.y + 22);
+      ctx.stroke();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSun();
+      drawGround();
+      drawGoat(player.x, player.y, player.size);
+
+      for (const o of obstacles) drawOompa(o);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "16px sans-serif";
+      ctx.fillText("Score: " + score, 10, 20);
+
+      if (!running)
+        ctx.fillText(gameOver ? "Game Over! Press SPACE or CLICK" : "Press SPACE or CLICK to start", 230, 100);
+    }
+
+    let lastTime = 0;
+    function loop(timestamp) {
+      if (!running) {
+        draw();
+        return;
+      }
+      const delta = timestamp - lastTime;
+      lastTime = timestamp;
+      update(delta);
+      draw();
+      if (!gameOver) requestAnimationFrame(loop);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        if (!running || gameOver) reset();
+        else jump();
+      }
+    });
+
+    canvas.addEventListener("mousedown", () => {
+      if (!running || gameOver) reset();
+      else jump();
+    });
+
+    draw();
+  </script>
+</body>
+</html>
