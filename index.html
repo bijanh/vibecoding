@@ -32,13 +32,16 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 25px; /* Adds consistent space between items */
-      align-items: center;
+      align-items: center; /* centers items horizontally */
+      justify-content: center;
+      gap: 25px; /* space between buttons */
     }
 
     a {
-      display: inline-block;
-      padding: 18px 50px;
+      display: block;
+      min-width: 200px; /* ensures equal button width */
+      text-align: center;
+      padding: 18px 0;
       font-size: 14px;
       color: #000;
       background: #0ff;
