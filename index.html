@@ -2,49 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Arcade</title>
+  <title>Welcome to the Arcade</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Press Start 2P', monospace;
-      background: radial-gradient(circle, #000 0%, #111 100%);
-      color: #0ff;
-      text-align: center;
       margin: 0;
       height: 100vh;
+      background: #000;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
+      color: #0ff;
+      font-family: 'Press Start 2P', monospace;
     }
+
     h1 {
-      font-size: 28px;
-      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
-      margin-bottom: 50px;
+      font-size: 22px;
+      text-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff;
+      letter-spacing: 3px;
+      filter: blur(1px);
+      margin-bottom: 60px;
     }
+
+    .icon {
+      font-size: 32px;
+      margin: 0 10px;
+      filter: drop-shadow(0 0 8px #0ff);
+    }
+
     ul {
       list-style: none;
       padding: 0;
+      margin: 0;
     }
+
     li {
-      margin: 20px 0;
+      margin: 15px 0;
     }
+
     a {
-      color: #fff;
-      text-decoration: none;
-      font-size: 20px;
+      display: inline-block;
+      padding: 15px 40px;
+      font-size: 14px;
+      color: #000;
       background: #0ff;
-      color: #000;
-      padding: 12px 24px;
-      border-radius: 10px;
-      transition: 0.2s;
-      box-shadow: 0 0 10px #0ff, 0 0 20px #0ff inset;
+      border-radius: 15px;
+      text-decoration: none;
+      box-shadow: 0 0 10px #0ff, 0 0 30px #0ff;
+      transition: transform 0.1s, box-shadow 0.2s;
     }
+
     a:hover {
-      background: #fff;
-      color: #000;
-      box-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #0ff, 0 0 50px #0ff;
     }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1>🎮 Welcome to the Arcade 🎮</h1>
